@@ -35,34 +35,34 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // <--- 1. ACTIVAR CORS AQUÍ
-            .csrf(csrf -> csrf.disable()) 
-            .authorizeHttpRequests(auth -> auth
-            
-                // Rutas Públicas
-                .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // <--- 1. ACTIVAR CORS AQUÍ
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
 
-                // --- NUEVA LÍNEA: Permitir WebSocket sin login ---
-                .requestMatchers("/ws-dashboard/**").permitAll() 
-                // -----------------------------------------------
-                
-                // Roles
-                .requestMatchers("/usuarios/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/facturas/**").hasAnyRole("ADMIN", "VENDEDOR")
-                .requestMatchers(HttpMethod.POST, "/clientes/**").hasAnyRole("ADMIN", "VENDEDOR")
-                .requestMatchers(HttpMethod.PUT, "/clientes/**").hasAnyRole("ADMIN", "VENDEDOR")
-                .requestMatchers("/reportes/**").hasAnyRole("ADMIN", "CONTADOR")
-                .requestMatchers("/proveedores/**").hasAnyRole("ADMIN", "CONTADOR")
-                .requestMatchers("/configuracion/**").hasRole("ADMIN")
-                // Resto
-                .anyRequest().authenticated()
-            )
-            .sessionManagement(sess -> sess
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                        // Rutas Públicas
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/productos/**").permitAll() // <-- Public Catalog
+
+                        // --- NUEVA LÍNEA: Permitir WebSocket sin login ---
+                        .requestMatchers("/ws-dashboard/**").permitAll()
+                        // -----------------------------------------------
+
+                        // Roles
+                        .requestMatchers("/usuarios/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/facturas/**").hasAnyRole("ADMIN", "VENDEDOR")
+                        .requestMatchers(HttpMethod.POST, "/clientes/**").hasAnyRole("ADMIN", "VENDEDOR")
+                        .requestMatchers(HttpMethod.PUT, "/clientes/**").hasAnyRole("ADMIN", "VENDEDOR")
+                        .requestMatchers("/reportes/**").hasAnyRole("ADMIN", "CONTADOR")
+                        .requestMatchers("/proveedores/**").hasAnyRole("ADMIN", "CONTADOR")
+                        .requestMatchers("/configuracion/**").hasRole("ADMIN")
+                        .requestMatchers("/ventas/**").hasAnyRole("ADMIN", "CLIENTE") // <-- Sales Module
+                        // Resto
+                        .anyRequest().authenticated())
+                .sessionManagement(sess -> sess
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -78,7 +78,7 @@ public class SecurityConfig {
         // Permitir cabeceras como Authorization (para el Token)
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

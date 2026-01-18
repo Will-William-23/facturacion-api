@@ -20,4 +20,10 @@ public class Producto {
     private String descripcion;
     private Double precio;
     private Integer stock; // Usamos Integer para el stock
+
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String imagen;
+
+    private String tipo;
 }
