@@ -21,21 +21,25 @@ import java.util.Map;
 @RequestMapping("/auth")
 public class AuthController {
 
-    @Autowired private AuthenticationManager authenticationManager;
-    @Autowired private UsuarioRepository usuarioRepository;
-    @Autowired private PasswordEncoder passwordEncoder;
-    @Autowired private JwtUtil jwtUtil;
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Usuario usuario) {
         if (usuarioRepository.findByUsername(usuario.getUsername()).isPresent()) {
             return ResponseEntity.badRequest()
-                .body(Collections.singletonMap("error", "El nombre de usuario ya existe."));
+                    .body(Collections.singletonMap("error", "El nombre de usuario ya existe."));
         }
-        
+
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
         usuarioRepository.save(usuario);
-        
+
         // CORRECCIÓN: Devolvemos un JSON, no un texto plano
         return ResponseEntity.ok(Collections.singletonMap("mensaje", "Usuario registrado exitosamente"));
     }
@@ -44,17 +48,16 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
         try {
             authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-            );
-            
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+
             final String jwt = jwtUtil.generateToken(request.getUsername());
             Usuario usuario = usuarioRepository.findByUsername(request.getUsername()).orElseThrow();
 
             return ResponseEntity.ok(new AuthResponse(jwt, usuario.getUsername(), usuario.getRole()));
-            
+
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(Collections.singletonMap("error", "Credenciales incorrectas"));
+                    .body(Collections.singletonMap("error", "Credenciales incorrectas"));
         }
     }
 }

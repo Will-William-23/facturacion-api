@@ -26,4 +26,9 @@ public class Producto {
     private String imagen;
 
     private String tipo;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "proveedor_id")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "productos" })
+    private Proveedor proveedor;
 }
