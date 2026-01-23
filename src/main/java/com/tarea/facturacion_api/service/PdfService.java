@@ -90,6 +90,12 @@ public class PdfService {
             total.setAlignment(Element.ALIGN_RIGHT);
             document.add(total);
             
+            // Método de Pago
+            document.add(Chunk.NEWLINE);
+            String metodoPagoText = obtenerTextoMetodoPago(factura.getMetodoPago(), factura.getDetallesPago());
+            Paragraph metodoPago = new Paragraph(metodoPagoText, FontFactory.getFont(FontFactory.HELVETICA, 10));
+            document.add(metodoPago);
+            
             // Pie de página (Clave Acceso)
             if(factura.getClaveAcceso() != null) {
                 document.add(Chunk.NEWLINE);
@@ -103,6 +109,51 @@ public class PdfService {
             e.printStackTrace();
         }
         return new ByteArrayInputStream(out.toByteArray());
+    }
+
+    // Helper para obtener el texto del método de pago
+    private String obtenerTextoMetodoPago(String metodoPago, String detallesPago) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Método de Pago: ");
+        
+        if (metodoPago == null || metodoPago.isEmpty()) {
+            return sb.append("No especificado").toString();
+        }
+        
+        try {
+            if (metodoPago.equalsIgnoreCase("efectivo")) {
+                sb.append("EFECTIVO");
+                // Podrías parsear detallesPago si tuviera info del cambio, pero es JSON
+            } else if (metodoPago.equalsIgnoreCase("tarjeta")) {
+                sb.append("TARJETA");
+                if (detallesPago != null && detallesPago.contains("ultimosCuatroDigitos")) {
+                    // Extracto simple del JSON (en un proyecto real, usar ObjectMapper)
+                    int idx = detallesPago.indexOf("ultimosCuatroDigitos");
+                    if (idx != -1) {
+                        String digitos = detallesPago.substring(idx + 25, Math.min(idx + 30, detallesPago.length()));
+                        sb.append(" (....").append(digitos).append(")");
+                    }
+                }
+            } else if (metodoPago.equalsIgnoreCase("transferencia")) {
+                sb.append("TRANSFERENCIA BANCARIA");
+                if (detallesPago != null && detallesPago.contains("banco")) {
+                    int idx = detallesPago.indexOf("banco");
+                    if (idx != -1) {
+                        int inicio = detallesPago.indexOf(":", idx) + 1;
+                        int fin = detallesPago.indexOf(",", inicio);
+                        if (fin == -1) fin = detallesPago.indexOf("}", inicio);
+                        String banco = detallesPago.substring(inicio, fin).replaceAll("\"", "").trim();
+                        sb.append(" - Banco: ").append(banco);
+                    }
+                }
+            } else {
+                sb.append(metodoPago);
+            }
+        } catch (Exception e) {
+            sb.append(metodoPago);
+        }
+        
+        return sb.toString();
     }
 
     // --- REPORTE 2: LISTADO DE CLIENTES (Nuevo) ---

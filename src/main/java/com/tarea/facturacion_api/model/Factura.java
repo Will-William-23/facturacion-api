@@ -41,6 +41,14 @@ public class Factura {
     @Column(columnDefinition = "TEXT")
     private String xmlContenido;
 
+    // --- MÉTODO DE PAGO ---
+    // Valores: "efectivo", "tarjeta", "transferencia"
+    private String metodoPago;
+
+    // Detalles adicionales según el método de pago
+    @Column(columnDefinition = "TEXT")
+    private String detallesPago; // Guardará JSON con datos adicionales (cambio, últimos 4 dígitos, banco, etc)
+
     // --- RELACIONES (Igual que antes) ---
 
     @ManyToOne(fetch = FetchType.EAGER)
