@@ -34,10 +34,16 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
+        } else if (request.getParameter("token") != null) {
+            // Soporte para token en URL (para descargas PDF)
+            jwt = request.getParameter("token");
+        }
+
+        if (jwt != null) {
             try {
                 username = jwtUtil.extractUsername(jwt);
             } catch (Exception e) {
-                // Token inválido
+                System.err.println(">>> JWT Error: " + e.getMessage());
             }
         }
 
@@ -49,6 +55,11 @@ public class JwtFilter extends OncePerRequestFilter {
                         userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                // DEBUG ROLES
+                // DEBUG ROLES (Comentado para evitar spam)
+                // System.out.println(">>> Auth User: " + username + " | Roles: " +
+                // userDetails.getAuthorities());
             }
         }
         chain.doFilter(request, response);

@@ -125,6 +125,15 @@ public class VentaService {
             df.setPrecioUnitario(dv.getPrecioUnitario());
 
             // Nota: Aquí NO descontamos stock, porque ya lo hizo la Venta arriba.
+
+            // DEBUG: Verificar qué producto se está guardando
+            if (dv.getProducto() != null) {
+                System.out.println(">>> [DEBUG FACTURA] Agregando Detalle: ProdID=" + dv.getProducto().getId()
+                        + " Nombre=" + dv.getProducto().getNombre());
+            } else {
+                System.err.println(">>> [DEBUG FACTURA] ¡ALERTA! El producto en DetalleVenta es NULL");
+            }
+
             detallesFactura.add(df);
             detalleFacturaRepository.save(df);
         }

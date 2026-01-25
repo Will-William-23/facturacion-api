@@ -33,7 +33,9 @@ public class ReporteController {
     // 1. FACTURA INDIVIDUAL (Ya existente)
     @GetMapping("/factura/{id}/pdf")
     public ResponseEntity<InputStreamResource> descargarFacturaPdf(@PathVariable Long id) {
-        Factura factura = facturaService.obtenerFacturaPorId(id)
+        // CORRECCIÓN: Usamos obtenerFacturaCompleta para traer los productos y evitar
+        // nulos
+        Factura factura = facturaService.obtenerFacturaCompleta(id)
                 .orElseThrow(() -> new RuntimeException("Factura no encontrada"));
 
         ByteArrayInputStream pdfStream = pdfService.generarFacturaPdf(factura);

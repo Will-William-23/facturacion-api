@@ -9,7 +9,7 @@ import com.tarea.facturacion_api.repository.FacturaRepository;
 import com.tarea.facturacion_api.repository.ProductoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // Importante
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,9 +35,12 @@ public class FacturaService {
         return facturaRepository.findById(id);
     }
 
+    // NUEVO MÉTODO: Obtener Factura con todos sus detalles (Eager Fetch)
+    public Optional<Factura> obtenerFacturaCompleta(Long id) {
+        return facturaRepository.findByIdWithDetails(id);
+    }
+
     // --- LÓGICA DE NEGOCIO CLAVE: CREAR FACTURA ---
-    // @Transactional: Si algo falla (ej. no hay stock),
-    // se revierte toda la operación (no se guarda nada).
     @Transactional
     public Factura crearFactura(Factura factura) {
 
@@ -80,9 +83,4 @@ public class FacturaService {
         // guardará automáticamente todos los detalles asociados.
         return facturaRepository.save(factura);
     }
-
-    // Nota: La tarea solo pide crear y consultar facturas, 
-    // por lo que omitimos 'actualizar' y 'eliminar' facturas, 
-    // ya que son operaciones complejas (requieren re-abastecer stock, etc.).
-    // Si necesitas eliminar, se añadiría aquí.
 }
