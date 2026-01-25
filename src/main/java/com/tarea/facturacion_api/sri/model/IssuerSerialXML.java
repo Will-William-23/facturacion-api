@@ -1,6 +1,6 @@
 package com.tarea.facturacion_api.sri.model;
 
-import jakarta.xml.bind.annotation.*;
+import javax.xml.bind.annotation.*;
 import lombok.Data;
 
 @Data
