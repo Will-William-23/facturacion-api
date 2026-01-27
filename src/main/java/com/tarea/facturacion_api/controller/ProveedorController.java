@@ -23,22 +23,25 @@ public class ProveedorController {
 
     @PostMapping
     public ResponseEntity<Proveedor> crear(@RequestBody Proveedor proveedor) {
+        if (proveedor.getProductos() != null) {
+            proveedor.getProductos().forEach(producto -> producto.setProveedor(proveedor));
+        }
         return new ResponseEntity<>(proveedorRepository.save(proveedor), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Proveedor> actualizar(@PathVariable Long id, @RequestBody Proveedor datos) {
         return proveedorRepository.findById(id)
-            .map(p -> {
-                p.setRuc(datos.getRuc());
-                p.setNombreEmpresa(datos.getNombreEmpresa());
-                p.setContactoNombre(datos.getContactoNombre());
-                p.setTelefono(datos.getTelefono());
-                p.setEmail(datos.getEmail());
-                p.setDireccion(datos.getDireccion());
-                return new ResponseEntity<>(proveedorRepository.save(p), HttpStatus.OK);
-            })
-            .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                .map(p -> {
+                    p.setRuc(datos.getRuc());
+                    p.setNombreEmpresa(datos.getNombreEmpresa());
+                    p.setContactoNombre(datos.getContactoNombre());
+                    p.setTelefono(datos.getTelefono());
+                    p.setEmail(datos.getEmail());
+                    p.setDireccion(datos.getDireccion());
+                    return new ResponseEntity<>(proveedorRepository.save(p), HttpStatus.OK);
+                })
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("/{id}")

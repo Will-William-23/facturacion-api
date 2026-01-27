@@ -56,11 +56,28 @@ public class PdfService {
             // Datos Factura
             document.add(new Paragraph("Factura No: " + String.format("%09d", factura.getId()), fontDatos));
             document.add(new Paragraph("Fecha: " + factura.getFecha().toString(), fontDatos));
-            document.add(new Paragraph(
-                    "Cliente: " + factura.getCliente().getNombre() + " " + factura.getCliente().getApellido(),
-                    fontDatos));
-            document.add(new Paragraph("CI/RUC: " + factura.getCliente().getCedula(), fontDatos));
-            document.add(new Paragraph("Dirección: " + factura.getCliente().getDireccion(), fontDatos));
+            if ("COMPRA".equals(factura.getTipo()) && factura.getProveedor() != null) {
+                // Datos del Proveedor
+                document.add(new Paragraph("Proveedor: " + factura.getProveedor().getNombreEmpresa(), fontDatos));
+                document.add(new Paragraph("RUC: " + factura.getProveedor().getRuc(), fontDatos));
+                document.add(new Paragraph("Dirección: " + factura.getProveedor().getDireccion(), fontDatos));
+                document.add(new Paragraph("Teléfono: " + factura.getProveedor().getTelefono(), fontDatos));
+            } else if (factura.getCliente() != null) {
+                // Datos del Cliente
+                document.add(new Paragraph(
+                        "Cliente: " + factura.getCliente().getNombre() + " " + factura.getCliente().getApellido(),
+                        fontDatos));
+                document.add(new Paragraph("CI/RUC: " + factura.getCliente().getCedula(), fontDatos));
+                document.add(new Paragraph("Dirección: " + factura.getCliente().getDireccion(), fontDatos));
+            } else {
+                document.add(new Paragraph("Cliente: CONSUMIDOR FINAL", fontDatos));
+            }
+            // Agregamos Método de Pago
+            String metodoPago = (factura.getMetodoPago() != null)
+                    ? factura.getMetodoPago().getDescripcion()
+                    : "SIN UTILIZACION DEL SISTEMA FINANCIERO (Efectivo)";
+            document.add(new Paragraph("Método de Pago: " + metodoPago, fontDatos));
+
             document.add(Chunk.NEWLINE);
 
             // Tabla
@@ -95,6 +112,22 @@ public class PdfService {
 
             // Totales
             document.add(Chunk.NEWLINE);
+            // Totales
+            document.add(Chunk.NEWLINE);
+
+            double subtotalVal = factura.getSubtotal() != null ? factura.getSubtotal() : factura.getTotal() / 1.15;
+            double ivaVal = factura.getIva() != null ? factura.getIva() : factura.getTotal() - subtotalVal;
+
+            Paragraph subtotalP = new Paragraph("Subtotal: $" + String.format("%.2f", subtotalVal),
+                    FontFactory.getFont(FontFactory.HELVETICA, 12));
+            subtotalP.setAlignment(Element.ALIGN_RIGHT);
+            document.add(subtotalP);
+
+            Paragraph ivaP = new Paragraph("IVA (15%): $" + String.format("%.2f", ivaVal),
+                    FontFactory.getFont(FontFactory.HELVETICA, 12));
+            ivaP.setAlignment(Element.ALIGN_RIGHT);
+            document.add(ivaP);
+
             Paragraph total = new Paragraph("TOTAL: $" + String.format("%.2f", factura.getTotal()),
                     FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14));
             total.setAlignment(Element.ALIGN_RIGHT);

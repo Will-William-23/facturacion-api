@@ -24,4 +24,7 @@ public class Proveedor {
     private String telefono;
     private String email;
     private String direccion;
+
+    @OneToMany(mappedBy = "proveedor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<Producto> productos = new java.util.ArrayList<>();
 }

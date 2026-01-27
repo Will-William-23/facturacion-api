@@ -18,7 +18,8 @@ public class Producto {
 
     private String nombre;
     private String descripcion;
-    private Double precio;
+    private Double precio; // Precio de Venta al Público
+    private Double precioCompra; // Precio de Compra al Proveedor
     private Integer stock; // Usamos Integer para el stock
 
     @Lob
@@ -26,4 +27,9 @@ public class Producto {
     private String imagen;
 
     private String tipo;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "proveedor_id")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "productos" })
+    private Proveedor proveedor;
 }

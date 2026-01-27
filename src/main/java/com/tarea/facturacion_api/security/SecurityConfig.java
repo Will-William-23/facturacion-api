@@ -46,6 +46,8 @@ public class SecurityConfig {
 
                         // --- NUEVA LÍNEA: Permitir WebSocket sin login ---
                         .requestMatchers("/ws-dashboard/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/metodos-pago/**").permitAll() // <-- Allow fetching
+                                                                                         // payment methods
                         // -----------------------------------------------
 
                         // Roles

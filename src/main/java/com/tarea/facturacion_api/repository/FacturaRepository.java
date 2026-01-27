@@ -13,4 +13,10 @@ public interface FacturaRepository extends JpaRepository<Factura, Long> {
 
     @Query("SELECT DISTINCT f FROM Factura f LEFT JOIN FETCH f.detalles d LEFT JOIN FETCH d.producto WHERE f.id = :id")
     Optional<Factura> findByIdWithDetails(@Param("id") Long id);
+
+    @Query("SELECT COALESCE(SUM(f.total), 0) FROM Factura f WHERE f.tipo = 'VENTA' OR f.tipo IS NULL")
+    Double sumTotalVentas();
+
+    @Query("SELECT COALESCE(SUM(f.total), 0) FROM Factura f WHERE f.tipo = 'COMPRA'")
+    Double sumTotalCompras();
 }

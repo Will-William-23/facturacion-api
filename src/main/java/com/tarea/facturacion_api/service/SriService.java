@@ -167,16 +167,32 @@ public class SriService {
         infoF.setDirEstablecimiento("Av. Sucursal");
         infoF.setObligadoContabilidad("NO");
         infoF.setTipoIdentificacionComprador("05");
-        infoF.setRazonSocialComprador(f.getCliente().getNombre() + " " + f.getCliente().getApellido());
-        String ident = f.getCliente().getCedula() != null ? f.getCliente().getCedula() : "9999999999";
-        infoF.setIdentificacionComprador(ident);
+
+        if ("COMPRA".equals(f.getTipo()) && f.getProveedor() != null) {
+            // Caso Factura de Compra / Liquidación: El "Comprador" en el XML será el
+            // Proveedor (o quien recibe el pago)
+            // para mantener la estructura simple.
+            infoF.setRazonSocialComprador(f.getProveedor().getNombreEmpresa());
+            String ident = f.getProveedor().getRuc() != null ? f.getProveedor().getRuc() : "9999999999";
+            infoF.setIdentificacionComprador(ident);
+        } else if (f.getCliente() != null) {
+            // Caso Venta Normal
+            infoF.setRazonSocialComprador(f.getCliente().getNombre() + " " + f.getCliente().getApellido());
+            String ident = f.getCliente().getCedula() != null ? f.getCliente().getCedula() : "9999999999";
+            infoF.setIdentificacionComprador(ident);
+        } else {
+            // Fallback
+            infoF.setRazonSocialComprador("CONSUMIDOR FINAL");
+            infoF.setIdentificacionComprador("9999999999999");
+        }
         infoF.setTotalSinImpuestos(format(f.getTotal()));
         infoF.setTotalDescuento("0.00");
         infoF.setTotalConImpuestos(Arrays.asList(new TotalImpuestoXML("2", "4", format(f.getTotal()), "0.00")));
         infoF.setPropina("0.00");
         infoF.setImporteTotal(format(f.getTotal()));
         infoF.setMoneda("DOLAR");
-        infoF.setPagos(Arrays.asList(new PagoXML("01", format(f.getTotal()), "0", "DIAS")));
+        String codigoPago = (f.getMetodoPago() != null) ? f.getMetodoPago().getCodigo() : "01";
+        infoF.setPagos(Arrays.asList(new PagoXML(codigoPago, format(f.getTotal()), "0", "DIAS")));
         xml.setInfoFactura(infoF);
 
         DetallesXML detallesContainer = new DetallesXML();
