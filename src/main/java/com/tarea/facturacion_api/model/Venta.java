@@ -19,9 +19,13 @@ public class Venta {
 
     private LocalDateTime fecha;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "cliente_id")
     private Cliente cliente;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "metodo_pago_id")
+    private MetodoPago metodoPago;
 
     // Relación con el usuario que realizó la compra (opcional, si queremos rastrear
     // el login)
@@ -29,6 +33,8 @@ public class Venta {
     // @JoinColumn(name = "usuario_id")
     // private Usuario usuario;
 
+    private Double subtotal;
+    private Double iva;
     private Double total;
 
     @Enumerated(EnumType.STRING)

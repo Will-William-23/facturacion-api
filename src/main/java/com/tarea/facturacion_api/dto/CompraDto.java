@@ -1,11 +1,11 @@
 package com.tarea.facturacion_api.dto;
 
-import lombok.Data;
 import java.util.List;
+import lombok.Data;
 
 @Data
-public class SolicitudCompraDto {
-    private Long clienteId;
+public class CompraDto {
+    private Long proveedorId;
     private Long metodoPagoId;
     private List<ItemCompraDto> items;
 

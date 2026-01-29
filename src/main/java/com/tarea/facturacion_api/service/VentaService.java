@@ -38,6 +38,8 @@ public class VentaService {
     private com.tarea.facturacion_api.repository.DetalleFacturaRepository detalleFacturaRepository;
     @Autowired
     private SriService sriService;
+    @Autowired
+    private com.tarea.facturacion_api.repository.MetodoPagoRepository metodoPagoRepository;
 
     @Transactional
     public Venta realizarVenta(SolicitudCompraDto solicitud) {
@@ -50,6 +52,19 @@ public class VentaService {
         venta.setCliente(cliente);
         venta.setFecha(LocalDateTime.now());
         venta.setEstado(Venta.EstadoVenta.COMPLETED);
+
+        // Validar y asignar Método de Pago
+        Long metodoPagoId = solicitud.getMetodoPagoId();
+        com.tarea.facturacion_api.model.MetodoPago metodoPago;
+        if (metodoPagoId != null) {
+            metodoPago = metodoPagoRepository.findById(metodoPagoId)
+                    .orElseThrow(() -> new RuntimeException("Método de pago no encontrado"));
+        } else {
+            // Default a Efectivo (01) si no se envía, para compatibilidad
+            metodoPago = metodoPagoRepository.findByCodigo("01")
+                    .orElseThrow(() -> new RuntimeException("Método de pago por defecto (01) no configurado"));
+        }
+        venta.setMetodoPago(metodoPago);
 
         // 3. Procesar Items
         List<DetalleVenta> detalles = new ArrayList<>();
@@ -81,7 +96,14 @@ public class VentaService {
         }
 
         // 4. Guardar Venta con Total
-        venta.setTotal(totalVenta);
+        // 4. Guardar Venta con Total e IVA
+        double subtotal = totalVenta;
+        double iva = subtotal * 0.15;
+        double totalFinal = subtotal + iva;
+
+        venta.setSubtotal(subtotal);
+        venta.setIva(iva);
+        venta.setTotal(totalFinal);
         Venta ventaGuardada = ventaRepository.save(venta);
 
         // 5. Guardar Detalles
@@ -109,7 +131,11 @@ public class VentaService {
         com.tarea.facturacion_api.model.Factura factura = new com.tarea.facturacion_api.model.Factura();
         factura.setCliente(venta.getCliente());
         factura.setFecha(venta.getFecha());
+        factura.setFecha(venta.getFecha());
+        factura.setSubtotal(venta.getSubtotal());
+        factura.setIva(venta.getIva());
         factura.setTotal(venta.getTotal());
+        factura.setMetodoPago(venta.getMetodoPago()); // Copiar método de pago
         factura.setEstadoSri("PENDIENTE"); // Estado inicial
 
         // Guardar Factura
@@ -125,6 +151,15 @@ public class VentaService {
             df.setPrecioUnitario(dv.getPrecioUnitario());
 
             // Nota: Aquí NO descontamos stock, porque ya lo hizo la Venta arriba.
+
+            // DEBUG: Verificar qué producto se está guardando
+            if (dv.getProducto() != null) {
+                System.out.println(">>> [DEBUG FACTURA] Agregando Detalle: ProdID=" + dv.getProducto().getId()
+                        + " Nombre=" + dv.getProducto().getNombre());
+            } else {
+                System.err.println(">>> [DEBUG FACTURA] ¡ALERTA! El producto en DetalleVenta es NULL");
+            }
+
             detallesFactura.add(df);
             detalleFacturaRepository.save(df);
         }

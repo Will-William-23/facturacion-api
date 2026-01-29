@@ -4,9 +4,10 @@ import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
-import com.tarea.facturacion_api.model.*;
-import com.tarea.facturacion_api.repository.ConfiguracionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.tarea.facturacion_api.model.Cliente;
+import com.tarea.facturacion_api.model.DetalleFactura;
+import com.tarea.facturacion_api.model.Factura;
+import com.tarea.facturacion_api.model.Producto;
 import org.springframework.stereotype.Service;
 
 import java.awt.Color;
@@ -18,67 +19,92 @@ import java.util.stream.Stream;
 @Service
 public class PdfService {
 
-    @Autowired
-    private ConfiguracionRepository configRepo;
-
-    // Helper para obtener config o defaults
-    private Configuracion getConfig() {
-        return configRepo.findById(1L).orElseGet(() -> {
-            Configuracion c = new Configuracion();
-            c.setNombreEmpresa("Mi Empresa");
-            c.setRuc("9999999999001");
-            c.setDireccion("Matriz Cuenca-Ecuador");
-            c.setTelefono("+593 978958721");
-            return c;
-        });
-    }
-
     public ByteArrayInputStream generarFacturaPdf(Factura factura) {
         Document document = new Document();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Configuracion conf = getConfig();
 
         try {
             PdfWriter.getInstance(document, out);
             document.open();
 
-            // Cabecera Empresa
-            Font fontEmpresa = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, Color.DARK_GRAY);
-            Paragraph empresa = new Paragraph(conf.getNombreEmpresa(), fontEmpresa);
-            empresa.setAlignment(Element.ALIGN_CENTER);
-            document.add(empresa);
-            
-            Font fontSub = FontFactory.getFont(FontFactory.HELVETICA, 10, Color.GRAY);
-            Paragraph datosEmpresa = new Paragraph("RUC: " + conf.getRuc() + "\n" + conf.getDireccion() + "\nTelf: " + conf.getTelefono(), fontSub);
-            datosEmpresa.setAlignment(Element.ALIGN_CENTER);
-            document.add(datosEmpresa);
+            // Fuentes
+            Font fontTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, Color.DARK_GRAY);
+            Font fontDatos = FontFactory.getFont(FontFactory.HELVETICA, 12);
+
+            // Encabezado
+            Paragraph titulo = new Paragraph("MI EMPRESA S.A.", fontTitulo);
+            titulo.setAlignment(Element.ALIGN_CENTER);
+            document.add(titulo);
+
+            Paragraph ruc = new Paragraph("RUC: 9999999999001",
+                    FontFactory.getFont(FontFactory.HELVETICA, 10, Color.GRAY));
+            ruc.setAlignment(Element.ALIGN_CENTER);
+            document.add(ruc);
+
+            Paragraph matriz = new Paragraph("Matriz Ecuador",
+                    FontFactory.getFont(FontFactory.HELVETICA, 10, Color.GRAY));
+            matriz.setAlignment(Element.ALIGN_CENTER);
+            document.add(matriz);
+
+            Paragraph telf = new Paragraph("Telf: 0999999999",
+                    FontFactory.getFont(FontFactory.HELVETICA, 10, Color.GRAY));
+            telf.setAlignment(Element.ALIGN_CENTER);
+            document.add(telf);
+
             document.add(Chunk.NEWLINE);
 
             // Datos Factura
-            Font fontDatos = FontFactory.getFont(FontFactory.HELVETICA, 11);
             document.add(new Paragraph("Factura No: " + String.format("%09d", factura.getId()), fontDatos));
             document.add(new Paragraph("Fecha: " + factura.getFecha().toString(), fontDatos));
-            document.add(new Paragraph("Cliente: " + factura.getCliente().getNombre() + " " + factura.getCliente().getApellido(), fontDatos));
-            document.add(new Paragraph("CI/RUC: " + factura.getCliente().getCedula(), fontDatos));
-            document.add(new Paragraph("Dirección: " + factura.getCliente().getDireccion(), fontDatos));
+            if ("COMPRA".equals(factura.getTipo()) && factura.getProveedor() != null) {
+                // Datos del Proveedor
+                document.add(new Paragraph("Proveedor: " + factura.getProveedor().getNombreEmpresa(), fontDatos));
+                document.add(new Paragraph("RUC: " + factura.getProveedor().getRuc(), fontDatos));
+                document.add(new Paragraph("Dirección: " + factura.getProveedor().getDireccion(), fontDatos));
+                document.add(new Paragraph("Teléfono: " + factura.getProveedor().getTelefono(), fontDatos));
+            } else if (factura.getCliente() != null) {
+                // Datos del Cliente
+                document.add(new Paragraph(
+                        "Cliente: " + factura.getCliente().getNombre() + " " + factura.getCliente().getApellido(),
+                        fontDatos));
+                document.add(new Paragraph("CI/RUC: " + factura.getCliente().getCedula(), fontDatos));
+                document.add(new Paragraph("Dirección: " + factura.getCliente().getDireccion(), fontDatos));
+            } else {
+                document.add(new Paragraph("Cliente: CONSUMIDOR FINAL", fontDatos));
+            }
+            // Agregamos Método de Pago
+            String metodoPago = (factura.getMetodoPago() != null)
+                    ? factura.getMetodoPago().getDescripcion()
+                    : "SIN UTILIZACION DEL SISTEMA FINANCIERO (Efectivo)";
+            document.add(new Paragraph("Método de Pago: " + metodoPago, fontDatos));
+
             document.add(Chunk.NEWLINE);
 
             // Tabla
             PdfPTable table = new PdfPTable(4);
             table.setWidthPercentage(100);
-            table.setWidths(new int[]{1, 4, 2, 2});
+            table.setWidths(new int[] { 1, 4, 2, 2 });
 
             Stream.of("Cant", "Descripción", "P. Unit", "Total")
-                .forEach(headerTitle -> {
-                    PdfPCell header = new PdfPCell();
-                    header.setBackgroundColor(Color.LIGHT_GRAY);
-                    header.setPhrase(new Phrase(headerTitle));
-                    table.addCell(header);
-                });
+                    .forEach(headerTitle -> {
+                        PdfPCell header = new PdfPCell();
+                        header.setBackgroundColor(Color.LIGHT_GRAY);
+                        header.setPhrase(new Phrase(headerTitle));
+                        table.addCell(header);
+                    });
 
             for (DetalleFactura det : factura.getDetalles()) {
+                // DEBUG PDF
+                System.out.println(">>> [DEBUG PDF] Detalle ID: " + det.getId());
+                if (det.getProducto() != null) {
+                    System.out.println(">>> [DEBUG PDF] Producto: " + det.getProducto().getNombre() + " (ID: "
+                            + det.getProducto().getId() + ")");
+                } else {
+                    System.err.println(">>> [DEBUG PDF] Producto es NULL en Detalle ID: " + det.getId());
+                }
+
                 table.addCell(String.valueOf(det.getCantidad()));
-                table.addCell(det.getProducto().getNombre());
+                table.addCell(det.getProducto() != null ? det.getProducto().getNombre() : "Producto Eliminado");
                 table.addCell(String.format("$%.2f", det.getPrecioUnitario()));
                 table.addCell(String.format("$%.2f", det.getCantidad() * det.getPrecioUnitario()));
             }
@@ -86,26 +112,46 @@ public class PdfService {
 
             // Totales
             document.add(Chunk.NEWLINE);
-            Paragraph total = new Paragraph("TOTAL: $" + String.format("%.2f", factura.getTotal()), FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14));
+            // Totales
+            document.add(Chunk.NEWLINE);
+
+            double subtotalVal = factura.getSubtotal() != null ? factura.getSubtotal() : factura.getTotal() / 1.15;
+            double ivaVal = factura.getIva() != null ? factura.getIva() : factura.getTotal() - subtotalVal;
+
+            Paragraph subtotalP = new Paragraph("Subtotal: $" + String.format("%.2f", subtotalVal),
+                    FontFactory.getFont(FontFactory.HELVETICA, 12));
+            subtotalP.setAlignment(Element.ALIGN_RIGHT);
+            document.add(subtotalP);
+
+            Paragraph ivaP = new Paragraph("IVA (15%): $" + String.format("%.2f", ivaVal),
+                    FontFactory.getFont(FontFactory.HELVETICA, 12));
+            ivaP.setAlignment(Element.ALIGN_RIGHT);
+            document.add(ivaP);
+
+            Paragraph total = new Paragraph("TOTAL: $" + String.format("%.2f", factura.getTotal()),
+                    FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14));
             total.setAlignment(Element.ALIGN_RIGHT);
             document.add(total);
-            
+
             // Pie de página (Clave Acceso)
-            if(factura.getClaveAcceso() != null) {
+            if (factura.getClaveAcceso() != null) {
                 document.add(Chunk.NEWLINE);
-                Paragraph clave = new Paragraph("Autorización SRI (Clave de Acceso):", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8));
+                Paragraph clave = new Paragraph("Autorización SRI (Clave de Acceso):",
+                        FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8));
                 document.add(clave);
                 document.add(new Paragraph(factura.getClaveAcceso(), FontFactory.getFont(FontFactory.COURIER, 8)));
             }
 
             document.close();
+
         } catch (DocumentException e) {
             e.printStackTrace();
         }
+
         return new ByteArrayInputStream(out.toByteArray());
     }
 
-    // --- REPORTE 2: LISTADO DE CLIENTES (Nuevo) ---
+    // --- REPORTE DE CLIENTES ---
     public ByteArrayInputStream generarReporteClientes(List<Cliente> clientes) {
         Document document = new Document();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -114,39 +160,46 @@ public class PdfService {
             PdfWriter.getInstance(document, out);
             document.open();
 
-            Font fontTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, Color.DARK_GRAY);
+            // Título
+            Font fontTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, Color.BLUE);
             Paragraph titulo = new Paragraph("Reporte de Clientes", fontTitulo);
             titulo.setAlignment(Element.ALIGN_CENTER);
             document.add(titulo);
             document.add(Chunk.NEWLINE);
 
-            PdfPTable table = new PdfPTable(4); // ID, Nombre, Email, Dirección
+            // Tabla
+            PdfPTable table = new PdfPTable(4);
             table.setWidthPercentage(100);
-            table.setWidths(new int[]{1, 3, 3, 3});
+            table.setWidths(new int[] { 3, 3, 2, 3 }); // Anchos relativos
 
-            Stream.of("ID", "Nombre Completo", "Email", "Dirección")
-                .forEach(headerTitle -> {
-                    PdfPCell header = new PdfPCell();
-                    header.setBackgroundColor(Color.ORANGE);
-                    header.setPhrase(new Phrase(headerTitle));
-                    table.addCell(header);
-                });
+            // Encabezados
+            Stream.of("Nombre", "Apellido", "Cédula", "Email")
+                    .forEach(headerTitle -> {
+                        PdfPCell header = new PdfPCell();
+                        header.setBackgroundColor(Color.LIGHT_GRAY);
+                        header.setPhrase(new Phrase(headerTitle));
+                        table.addCell(header);
+                    });
 
+            // Datos
             for (Cliente cliente : clientes) {
-                table.addCell(String.valueOf(cliente.getId()));
-                table.addCell(cliente.getNombre() + " " + cliente.getApellido());
+                table.addCell(cliente.getNombre());
+                table.addCell(cliente.getApellido());
+                table.addCell(cliente.getCedula());
                 table.addCell(cliente.getEmail());
-                table.addCell(cliente.getDireccion());
             }
+
             document.add(table);
             document.close();
+
         } catch (DocumentException e) {
             e.printStackTrace();
         }
+
         return new ByteArrayInputStream(out.toByteArray());
     }
 
-    // --- REPORTE 3: LISTADO DE PRODUCTOS (Nuevo) ---
+    // --- REPORTE DE PRODUCTOS (INVENTARIO) ---
     public ByteArrayInputStream generarReporteProductos(List<Producto> productos) {
         Document document = new Document();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -155,37 +208,42 @@ public class PdfService {
             PdfWriter.getInstance(document, out);
             document.open();
 
-            Font fontTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, Color.DARK_GRAY);
-            Paragraph titulo = new Paragraph("Inventario de Productos", fontTitulo);
+            // Título
+            Font fontTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, Color.DARK_GRAY);
+            Paragraph titulo = new Paragraph("Reporte de Inventario", fontTitulo);
             titulo.setAlignment(Element.ALIGN_CENTER);
             document.add(titulo);
             document.add(Chunk.NEWLINE);
 
-            PdfPTable table = new PdfPTable(4); // ID, Nombre, Precio, Stock
+            // Tabla
+            PdfPTable table = new PdfPTable(4);
             table.setWidthPercentage(100);
-            table.setWidths(new int[]{1, 4, 2, 2});
+            table.setWidths(new int[] { 4, 2, 2, 2 }); // Anchos relativos
 
-            Stream.of("ID", "Producto", "Precio", "Stock")
-                .forEach(headerTitle -> {
-                    PdfPCell header = new PdfPCell();
-                    header.setBackgroundColor(Color.CYAN);
-                    header.setPhrase(new Phrase(headerTitle));
-                    table.addCell(header);
-                });
+            // Encabezados
+            Stream.of("Producto", "Precio", "Stock", "Tipo")
+                    .forEach(headerTitle -> {
+                        PdfPCell header = new PdfPCell();
+                        header.setBackgroundColor(Color.ORANGE);
+                        header.setPhrase(new Phrase(headerTitle));
+                        table.addCell(header);
+                    });
 
-            for (Producto prod : productos) {
-                table.addCell(String.valueOf(prod.getId()));
-                table.addCell(prod.getNombre());
-                table.addCell("$" + prod.getPrecio());
-                table.addCell(String.valueOf(prod.getStock()));
+            // Datos
+            for (Producto p : productos) {
+                table.addCell(p.getNombre());
+                table.addCell(String.format("$%.2f", p.getPrecio()));
+                table.addCell(String.valueOf(p.getStock()));
+                table.addCell(p.getTipo() != null ? p.getTipo() : "N/A");
             }
+
             document.add(table);
             document.close();
+
         } catch (DocumentException e) {
             e.printStackTrace();
         }
+
         return new ByteArrayInputStream(out.toByteArray());
     }
-
-    
 }
