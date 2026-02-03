@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<factura id="comprobante" version="1.0.0" xmlns:ns2="http://www.w3.org/2000/09/xmldsig#" xmlns:ns3="http://uri.etsi.org/01903/v1.3.2#">
+    <infoTributaria>
+        <ambiente>1</ambiente>
+        <tipoEmision>1</tipoEmision>
+        <razonSocial>TechNova Solutions S.A.</razonSocial>
+        <nombreComercial>TechNova Solutions S.A.</nombreComercial>
+        <ruc>0190056789001</ruc>
+        <claveAcceso>2801202601019005678900110010010000000011234567819</claveAcceso>
+        <codDoc>01</codDoc>
+        <estab>001</estab>
+        <ptoEmi>001</ptoEmi>
+        <secuencial>000000001</secuencial>
+        <dirMatriz>Av. Las Américas y Ordóñez Lasso, Cuenca</dirMatriz>
+    </infoTributaria>
+    <infoFactura>
+        <fechaEmision>28/01/2026</fechaEmision>
+        <dirEstablecimiento>Sucursal Centro</dirEstablecimiento>
+        <obligadoContabilidad>NO</obligadoContabilidad>
+        <tipoIdentificacionComprador>05</tipoIdentificacionComprador>
+        <razonSocialComprador>Cristhopher Rivadeneira</razonSocialComprador>
+        <identificacionComprador>0302390042</identificacionComprador>
+        <totalSinImpuestos>160.31</totalSinImpuestos>
+        <totalDescuento>0.00</totalDescuento>
+        <totalConImpuestos>
+            <totalImpuesto>
+                <codigo>2</codigo>
+                <codigoPorcentaje>4</codigoPorcentaje>
+                <baseImponible>139.40</baseImponible>
+                <valor>20.91</valor>
+            </totalImpuesto>
+        </totalConImpuestos>
+        <propina>0.00</propina>
+        <importeTotal>160.31</importeTotal>
+        <moneda>DOLAR</moneda>
+        <pagos>
+            <pago>
+                <formaPago>01</formaPago>
+                <total>160.31</total>
+                <plazo>0</plazo>
+                <unidadTiempo>DIAS</unidadTiempo>
+            </pago>
+        </pagos>
+    </infoFactura>
+    <detalles>
+        <detalle>
+            <codigoPrincipal>TEC-RED-K552</codigoPrincipal>
+            <descripcion>Teclado Mecánico Redragon Kumara</descripcion>
+            <cantidad>1.00</cantidad>
+            <precioUnitario>45.90</precioUnitario>
+            <descuento>0.00</descuento>
+            <precioTotalSinImpuesto>45.90</precioTotalSinImpuesto>
+            <impuestos>
+                <impuesto>
+                    <codigo>2</codigo>
+                    <codigoPorcentaje>4</codigoPorcentaje>
+                    <tarifa>15.00</tarifa>
+                    <baseImponible>45.90</baseImponible>
+                    <valor>6.89</valor>
+                </impuesto>
+            </impuestos>
+        </detalle>
+        <detalle>
+            <codigoPrincipal>ROU-TP-ARCHER</codigoPrincipal>
+            <descripcion>Router TP-Link Archer AX12</descripcion>
+            <cantidad>1.00</cantidad>
+            <precioUnitario>68.50</precioUnitario>
+            <descuento>0.00</descuento>
+            <precioTotalSinImpuesto>68.50</precioTotalSinImpuesto>
+            <impuestos>
+                <impuesto>
+                    <codigo>2</codigo>
+                    <codigoPorcentaje>4</codigoPorcentaje>
+                    <tarifa>15.00</tarifa>
+                    <baseImponible>68.50</baseImponible>
+                    <valor>10.28</valor>
+                </impuesto>
+            </impuestos>
+        </detalle>
+        <detalle>
+            <codigoPrincipal>MOU-LOG-WL</codigoPrincipal>
+            <descripcion>Mouse Logitech Pebble</descripcion>
+            <cantidad>1.00</cantidad>
+            <precioUnitario>25.00</precioUnitario>
+            <descuento>0.00</descuento>
+            <precioTotalSinImpuesto>25.00</precioTotalSinImpuesto>
+            <impuestos>
+                <impuesto>
+                    <codigo>2</codigo>
+                    <codigoPorcentaje>4</codigoPorcentaje>
+                    <tarifa>15.00</tarifa>
+                    <baseImponible>25.00</baseImponible>
+                    <valor>3.75</valor>
+                </impuesto>
+            </impuestos>
+        </detalle>
+    </detalles>
+</factura>
+
+<!-- FIRMA DIGITAL: jqmvmcf9/P2Cp83ERO2pD2LRVk1gmJCinowMGuVems/+bL77bj5E3+F/YSow8Gp26sSdy5HFlxZsrZw/+qmJicM6rmEhXfVSGEzNVSF5Yzk3Vb0x/prm9b54lvbXQkBS7IcjRaMs8dxTBbaPXi4845NLKINPrKzEjVbUDJAOsq2PtlfnPndvza5FyHTcuFPtF1NaGF7qAkhLg/zUT1bVWIZ9exzNk2kAbP3NIZQkNCa8+2CHBPeN0Xy2pxT9W7bzE67+3z4Mbrm3azQRlZnqsgrHKC078ztKcvS52pqYR2LbYuJahxUDGDPo6vfiD2oPQjvJZfLvNDe4ugGduP3NYg== -->
